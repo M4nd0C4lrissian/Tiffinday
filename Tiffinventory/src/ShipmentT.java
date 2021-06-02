@@ -1,24 +1,56 @@
 import java.util.ArrayList;
-//might just make all this shit protected so I don't have to add shitty access programs
-//but I probably should anyways for good practice
 
+//extra notes can be written in place info
+//make possible to remove / alter shipments later
 public class ShipmentT {
 
     private ArrayList<ShipInfoT> shipments = new ArrayList<ShipInfoT>();
 
-    public ShipmentT(){}
+    public ShipmentT(){} 
 
     public void add_ship(int c, int j, String place){
         shipments.add(new ShipInfoT(c, j, place));
     }
 
+    public ArrayList<ShipInfoT> getShip(){
+        return shipments;
+    }
+
+    public String where_sent(int index){
+        is_outBounds(index);
+        return shipments.get(index).place_sent;
+    }
+
+    public int[] getDate(int index){
+        is_outBounds(index);
+        return shipments.get(index).date_sent;
+    }
+
+    public int getInvoice_num(int index){
+        is_outBounds(index);
+        return shipments.get(index).invoice_num;
+    }
+
+    public int[] getSent(int index){
+        is_outBounds(index);
+        ShipInfoT ship = shipments.get(index);
+        return new int[] {ship.c_sent, ship.j_sent};
+    } 
+
+    private void is_outBounds(int index) throws IndexOutOfBoundsException{
+        if(shipments.size() < index + 1){
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
+
     private class ShipInfoT{
 
-        private int[] date_sent = new int[3];
-        private String place_sent;
-        private int invoice_num; //for now will be inputted, later just iterated from base num
-        private int c_sent;
-        private int j_sent;
+        public int[] date_sent = new int[3];
+        public String place_sent;
+        public int invoice_num; //for now will be inputted, later just iterated from value in database
+        public int c_sent;
+        public int j_sent;
         
         ShipInfoT(int c, int j, String place){
             String[] c_date = java.time.LocalDate.now().toString().split("-");

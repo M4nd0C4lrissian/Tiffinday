@@ -1,12 +1,12 @@
 import java.util.InputMismatchException;
-
+//**NOTE: state invariant : c_num and j_num >= 0 for all time. 
 public class BatchT{ //implements Batch{
     private final ProductEnum prod;
     private int[] date;
     private String note;
     private int c_num;
     private int j_num;
-    //private Shipment out; - have to make associated shipment object / type
+    private ShipmentT sent = new ShipmentT(); 
 
     //have to have it interface with total? - maybe that'll be handled at greater level of hierarchy
 
@@ -14,8 +14,8 @@ public class BatchT{ //implements Batch{
         this.prod = p;
         this.c_num = cases;
         this.j_num = jars;
-        if(date_made.length != 3){
-            throw new InputMismatchException("Poor date format.");
+        if((date_made.length != 3) || cases < 0 || jars < 0){
+            throw new InputMismatchException("Poor date format / invalid case or jar input.");
         }
         this.date = date_made;
     }
@@ -41,7 +41,7 @@ public class BatchT{ //implements Batch{
     }
 
     public void make_case(){
-        if(j_num >= Batch.CASE_SIZE){
+        if(j_num >= Services.CASE_SIZE){ //create constants module to replace Batch
             c_num++;
             j_num--;
             return;
@@ -51,7 +51,7 @@ public class BatchT{ //implements Batch{
 
     public void split_case(){
         if(c_num >= 1){
-            j_num += Batch.CASE_SIZE;
+            j_num += Services.CASE_SIZE;
             c_num--;
             return;
         }
@@ -73,7 +73,7 @@ public class BatchT{ //implements Batch{
     public boolean is_expired(){
        String[] c_date = java.time.LocalDate.now().toString().split("-");
        int[] exp = date;
-       exp[0] += Batch.EXP_RANGE;
+       exp[0] += Services.EXP_RANGE; //assumes expiration is just on the year -- we should make and treat expiration similarly to 
        for(int i = 2 ; i >= 0 ; i-- ){
            if(exp[i] < Integer.parseInt(c_date[i])){
                return true;
@@ -82,16 +82,31 @@ public class BatchT{ //implements Batch{
        return false;
     }
 
-    //TODO
-    public void ship(int c, int j){
-        return;
+    public void ship(int c, int j, String place){ 
+        if(c_num >= c && j_num >= j){
+            sent.add_ship(c, j, place);
+            c_num = c_num - c;
+            j_num = j_num - j;
+            //update trigger? - answer : NO - covered in BatchQueue as expected given UML
+        }
+
+        else{
+            System.out.println("Not enough cases / jars available to ship this amount. There are " + Integer.toString(c_num) + " cases and " + Integer.toString(j_num) + " jars available.");
+        } //this error should be warded against in BatchQueue, so maybe take out?
     }
 
-    protected void c_over(int new_c){
+
+    //**MOVE TO BATCHQUEUE**
+    protected void override(int new_c, int new_j){ //might have to be implemented in BatchQueue, using date search to find particular batch -- because it has to talk to database
+        if(new_c < 0 || new_j < 0){
+            ///ERROR  
+        }
+        Trigger.decr_prod(prod, c_num - new_c , j_num - new_j);
         c_num = new_c;
-    }
-
-    protected void j_over(int new_j){ 
         j_num = new_j;
     }
 }
+
+//Gonna be a bitch to always treat case and jar as separate and specified entities if we wish to generalize. Should do something similar to my OG CaseT and JarT, but with just enums, and their associated values 
+//--Note, associated values wouldn't work because they need to be dynamic, but it could work with database, initialized by user, to create a "relatively final" array (arraylist most likely) of strings associated to indices that can be used as reference (so when they click on the screen to 
+// to choose the specific product, that will be associated with the respective indice as well), and we can pass in an array of [0,2,3,1,8, ... , 1] lets say, and that would override the values for all N types of sizes / packaging methods associated with those indices, and another boolean array or just arraylist of ints could be passed to indicate where and where not to apply the function)
