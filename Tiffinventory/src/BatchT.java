@@ -3,7 +3,7 @@ import java.util.InputMismatchException;
 public class BatchT{ //implements Batch{
     private final ProductEnum prod;
     private int[] date;
-    private String note;
+    //private String note;
     private int c_num;
     private int j_num;
     private ShipmentT sent = new ShipmentT(); 
@@ -14,8 +14,8 @@ public class BatchT{ //implements Batch{
         this.prod = p;
         this.c_num = cases;
         this.j_num = jars;
-        if((date_made.length != 3) || cases < 0 || jars < 0){
-            throw new InputMismatchException("Poor date format / invalid case or jar input.");
+        if(!(is_validDate(date_made)) || cases < 0 || jars < 0){
+            throw new InputMismatchException("Poor date format and/or invalid case or jar input (must be positive)."); //ward against and provide regular non-error message in UI
         }
         this.date = date_made;
     }
@@ -24,13 +24,13 @@ public class BatchT{ //implements Batch{
         return prod;
     }
 
-    public void write_note(String s){ //note should be on shipment, not batch
-        note = s;
+    public void write_note(String s){ //note should be on shipment, not batch****
+        //note = s;
     }
 
-    public String getNote(){
-        return note;
-    }
+   // public String getNote(){
+        //return note;
+    //}
 
     public int[] getDate(){
         return date;
@@ -104,6 +104,26 @@ public class BatchT{ //implements Batch{
         Trigger.decr_prod(prod, c_num - new_c , j_num - new_j);
         c_num = new_c;
         j_num = new_j;
+    }
+
+    private static boolean is_validDate(int[] date){
+        if(date.length != 3){
+            return false;
+        }
+
+        if(Integer.toString(date[0]).length() != 4){
+            return false;
+        }
+
+        if(Integer.toString(date[1]).length() != 2){
+            return false;
+        }
+
+        if(Integer.toString(date[2]).length() != 2){
+            return false;
+        }
+
+        return true;
     }
 }
 

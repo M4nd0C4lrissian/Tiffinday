@@ -4,6 +4,7 @@ import java.util.InputMismatchException;
 public class Services {
     public static final int CASE_SIZE = 12;
     public static final int EXP_RANGE = 1;
+    public static final String DATE_DELIM = "/";
 
     //tested -- might make it return indices instead so we dont have to pass around arraylists - although probably just passes mem location but still faster with ints
     //so possibility for improvement
@@ -68,14 +69,14 @@ public class Services {
     public static void main(String[] args){
         ArrayList<BatchT> batches = new ArrayList<BatchT>(); 
         batches.add(new BatchT(ProductEnum.GREEN, new int[] {2001, 2, 20}, 4, 4));
-        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2001, 4, 20}, 4, 4));
-        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2003, 5, 16}, 4, 4));
-        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2007, 4, 20}, 4, 4));
-        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2011, 3, 30}, 4, 4));
-        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2018, 3, 30}, 4, 4));
+        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2021, 4, 20}, 4, 4));
+        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2007, 5, 16}, 4, 4));
+        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2003, 4, 20}, 4, 4));
+        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2001, 3, 30}, 4, 4));
+        batches.add(new BatchT(ProductEnum.GREEN, new int[] {2021, 3, 30}, 4, 4));
 
         BatchT to_add = new BatchT(ProductEnum.GREEN, new int[] {2021, 4, 18}, 4, 4);
-        batches = insertbyDate(batches, to_add);
+        quickSort(batches, 0, batches.size()-1);
 
         for(BatchT b : batches){
             print(b);
@@ -88,5 +89,35 @@ public class Services {
             System.out.print(Integer.toString(i) + "/");
         }
         System.out.print(", ");
+    }
+
+    public static void quickSort(ArrayList<BatchT> batches, int begin, int end) { //works!
+        if (begin < end) {
+            int partitionIndex = partition(batches, begin, end);
+    
+            quickSort(batches, begin, partitionIndex-1);
+            quickSort(batches, partitionIndex+1, end);
+        }
+    }
+
+    private static int partition(ArrayList<BatchT> batches, int begin, int end) {
+        int[] pivot = batches.get(end).getDate();
+        int i = (begin-1);
+    
+        for (int j = begin; j < end; j++) {
+            if (is_later(pivot, batches.get(j).getDate())) {
+                i++;
+    
+                BatchT swapTemp = batches.get(i);
+                batches.set(i, batches.get(j));
+                batches.set(j, swapTemp);
+            }
+        }
+    
+        BatchT swapTemp = batches.get(i+1);
+        batches.set(i+1, batches.get(end));
+        batches.set(end, swapTemp);
+    
+        return i+1;
     }
 }

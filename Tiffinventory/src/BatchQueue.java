@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 
 public class BatchQueue {  //responsible for tracking active batches, for making shipments thoughtless and providing info for the table to be made
-    protected static ArrayList<ArrayList<BatchT>> batches = new ArrayList<ArrayList<BatchT>>(ProductEnum.values().length); //this needs to read and write to data
+    protected static ArrayList<ArrayList<BatchT>> batches = new ArrayList<ArrayList<BatchT>>(ProductEnum.values().length); //as this will pull from ActiveBatchD, we need to check for 0 length, it could mean that there arent any batches of that kind or there is an issue with the database (because of try-catch in getBatches)
     
     public static void new_batch(ProductEnum p, String date, int c, int j);  //remember to update overall "batch table" (in and out table - re: seema's spreadsheet)
     //if we allow other batches to be added with manual date insertion (should be separate method), then we must be able to compare dates and insert in chronological order (pretty doable)
@@ -12,7 +12,7 @@ public class BatchQueue {  //responsible for tracking active batches, for making
         
     }
 
-    public static void ship(ProductEnum p, String place, int c, int j){  //rememebr to update "batch table" and "shipment table"
+    public static void ship(ProductEnum p, String place, int c, int j){  //this must be tested independently before database integration
         ArrayList<BatchT> s_type = batches.get(p.get_ind());
         int c2ship = c;
         int j2ship = j;
