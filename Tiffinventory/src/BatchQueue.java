@@ -1,16 +1,13 @@
 import java.util.ArrayList;
 //***NOTE***: all "string warnings", should and shall be replaced with errors, as designated henceforth by mighty King Earl, first of his name.  
-import java.util.InputMismatchException;
 
 public class BatchQueue {  //responsible for tracking active batches, for making shipments thoughtless and providing info for the table to be made
     protected static ArrayList<ArrayList<BatchT>> batches = new ArrayList<ArrayList<BatchT>>(ProductEnum.values().length); //as this will pull from ActiveBatchD, we need to check for 0 length, it could mean that there arent any batches of that kind or there is an issue with the database (because of try-catch in getBatches)
     
-    public static void new_batch(ProductEnum p, String date, int c, int j);  //remember to update overall "batch table" (in and out table - re: seema's spreadsheet)
-    //if we allow other batches to be added with manual date insertion (should be separate method), then we must be able to compare dates and insert in chronological order (pretty doable)
+    public static void new_batch(ProductEnum p, String date, int c, int j){
 
-    public static void todays_batch(ProductEnum p, int c, int j){
-        
     }
+    
 
     public static void ship(ProductEnum p, String place, int c, int j){  //this must be tested independently before database integration
         ArrayList<BatchT> s_type = batches.get(p.get_ind());
@@ -62,12 +59,6 @@ public class BatchQueue {  //responsible for tracking active batches, for making
     }
 
   //  public void remove_batch(int index); //will take in date and will use similar principal to searching for add_batch_at_date. (searching in ordered array so binary search but with a few extra compares)
-
-    //make local date int[] search
-    public static void insertbyDate(ArrayList<BatchT> batches, BatchT to_add) throws InputMismatchException{
-        //to change -- calls from Services
-        
-    }
 
 
     //implement override

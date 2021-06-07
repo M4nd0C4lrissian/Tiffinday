@@ -1,13 +1,9 @@
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 
-public class Services {
-    public static final int CASE_SIZE = 12;
-    public static final int EXP_RANGE = 1;
-    public static final String DATE_DELIM = "/";
+public class BatchSorter {
 
-    //tested -- might make it return indices instead so we dont have to pass around arraylists - although probably just passes mem location but still faster with ints
-    //so possibility for improvement
+    //tested
     public static ArrayList<BatchT> insertbyDate(ArrayList<BatchT> batches, BatchT to_add) throws InputMismatchException{
         
         int[] s_date = to_add.getDate();
@@ -24,7 +20,7 @@ public class Services {
             batches.add(to_add);
             return batches;
         }
-        while(hi != lo){ //this method will require testing
+        while(hi != lo){ 
             int mid = (hi + lo) / 2; 
             if(is_later(s_date, batches.get(mid).getDate())){
                 lo = mid + 1;
@@ -47,6 +43,7 @@ public class Services {
         
     }
 
+    //tested
     private static boolean is_later(int[] l_date, int[] e_date) throws InputMismatchException{ //this could be put in constants / services module for use in is_expired with EXP range passed as a length three int[]
         if(l_date.length != 3 || l_date.length != e_date.length){
             throw new InputMismatchException("Invalid date format");
@@ -66,6 +63,7 @@ public class Services {
 
         return true; // if they're equal we say sure it is later
     }
+    
     public static void main(String[] args){
         ArrayList<BatchT> batches = new ArrayList<BatchT>(); 
         batches.add(new BatchT(ProductEnum.GREEN, new int[] {2001, 2, 20}, 4, 4));
@@ -82,6 +80,8 @@ public class Services {
             print(b);
         }
     }
+
+    
 
     public static void print(BatchT to_print){
         int[] date = to_print.getDate();
@@ -120,4 +120,5 @@ public class Services {
     
         return i+1;
     }
+
 }

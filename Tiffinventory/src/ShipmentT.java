@@ -4,7 +4,7 @@ import java.util.ArrayList;
 //make possible to remove / alter shipments later
 public class ShipmentT {
 
-    private ArrayList<ShipInfoT> shipments = new ArrayList<ShipInfoT>();
+    private ArrayList<ShipInfoT> shipments = new ArrayList<ShipInfoT>(); //this isn't necessary -- just put everything straight into table
 
     public ShipmentT(){} 
 

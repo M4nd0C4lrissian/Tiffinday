@@ -1,5 +1,6 @@
 import java.util.InputMismatchException;
 //**NOTE: state invariant : c_num and j_num >= 0 for all time. 
+
 public class BatchT{ //implements Batch{
     private final ProductEnum prod;
     private int[] date;
@@ -7,6 +8,7 @@ public class BatchT{ //implements Batch{
     private int c_num;
     private int j_num;
     private ShipmentT sent = new ShipmentT(); 
+    
 
     //have to have it interface with total? - maybe that'll be handled at greater level of hierarchy
 
@@ -14,7 +16,7 @@ public class BatchT{ //implements Batch{
         this.prod = p;
         this.c_num = cases;
         this.j_num = jars;
-        if(!(is_validDate(date_made)) || cases < 0 || jars < 0){
+        if(date_made.length !=3 || !(DateServices.is_validDate(date_made)) || cases < 0 || jars < 0){ 
             throw new InputMismatchException("Poor date format and/or invalid case or jar input (must be positive)."); //ward against and provide regular non-error message in UI
         }
         this.date = date_made;
@@ -36,12 +38,8 @@ public class BatchT{ //implements Batch{
         return date;
     }
 
-    public int[] getDate(int index){
-        return date;
-    }
-
     public void make_case(){
-        if(j_num >= Services.CASE_SIZE){ //create constants module to replace Batch
+        if(j_num >= Constants.CASE_SIZE){ //create constants module to replace Batch
             c_num++;
             j_num--;
             return;
@@ -51,7 +49,7 @@ public class BatchT{ //implements Batch{
 
     public void split_case(){
         if(c_num >= 1){
-            j_num += Services.CASE_SIZE;
+            j_num += Constants.CASE_SIZE;
             c_num--;
             return;
         }
@@ -70,10 +68,11 @@ public class BatchT{ //implements Batch{
         return (c_num <= 0 && j_num <= 0);
     }
 
+    //YEAR / MONTH / DAY
     public boolean is_expired(){
        String[] c_date = java.time.LocalDate.now().toString().split("-");
        int[] exp = date;
-       exp[0] += Services.EXP_RANGE; //assumes expiration is just on the year -- we should make and treat expiration similarly to 
+       exp[0] += Constants.EXP_RANGE; //assumes expiration is just on the year -- we should make and treat expiration similarly to 
        for(int i = 2 ; i >= 0 ; i-- ){
            if(exp[i] < Integer.parseInt(c_date[i])){
                return true;
@@ -106,25 +105,6 @@ public class BatchT{ //implements Batch{
         j_num = new_j;
     }
 
-    private static boolean is_validDate(int[] date){
-        if(date.length != 3){
-            return false;
-        }
-
-        if(Integer.toString(date[0]).length() != 4){
-            return false;
-        }
-
-        if(Integer.toString(date[1]).length() != 2){
-            return false;
-        }
-
-        if(Integer.toString(date[2]).length() != 2){
-            return false;
-        }
-
-        return true;
-    }
 }
 
 //Gonna be a bitch to always treat case and jar as separate and specified entities if we wish to generalize. Should do something similar to my OG CaseT and JarT, but with just enums, and their associated values 
