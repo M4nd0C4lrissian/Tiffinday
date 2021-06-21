@@ -9,7 +9,6 @@ public class BatchT{ //implements Batch{
     private int j_num;
     private ShipmentT sent = new ShipmentT(); 
     
-
     //have to have it interface with total? - maybe that'll be handled at greater level of hierarchy
 
     public BatchT(ProductEnum p, int[] date_made, int cases, int  jars) throws InputMismatchException{
@@ -41,7 +40,7 @@ public class BatchT{ //implements Batch{
     public void make_case(){
         if(j_num >= Constants.CASE_SIZE){ //create constants module to replace Batch
             c_num++;
-            j_num--;
+            j_num = j_num - 12;
             return;
         }
         System.out.println("Not enough jars to form a case");
@@ -69,16 +68,20 @@ public class BatchT{ //implements Batch{
     }
 
     //YEAR / MONTH / DAY
-    public boolean is_expired(){
+    public boolean is_expired(){ //may have to rework this to see if it is within certain range...but thats for later
        String[] c_date = java.time.LocalDate.now().toString().split("-");
-       int[] exp = date;
+       int[] exp = date.clone();
        exp[0] += Constants.EXP_RANGE; //assumes expiration is just on the year -- we should make and treat expiration similarly to 
-       for(int i = 2 ; i >= 0 ; i-- ){
-           if(exp[i] < Integer.parseInt(c_date[i])){
-               return true;
-           }
-       }
-       return false;
+       for(int i = 0 ; i < 3 ; i++ ){
+            if(exp[i] == Integer.parseInt(c_date[i])){
+               continue;
+            }
+            if(exp[i] < Integer.parseInt(c_date[i])){
+                return true;
+            }
+            return false;
+        }
+        return true;
     }
 
     public void ship(int c, int j, String place){ 

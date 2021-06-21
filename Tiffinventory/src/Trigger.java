@@ -4,9 +4,9 @@ public class Trigger { //this class will need to entirely interface with the dat
     //to be interfaced with in BatchQueue and not BatchT / ShipmentT (other than their override methods). This means some extra care will have to go into ensuring that other means of messing 
     //with values are protected from the user.
 
-    private static int[] total_j = new int[ProductEnum.values().length]; //this needs to be constantly written to database 
-    private static int[] total_c = new int[ProductEnum.values().length];
-    private static int[] triggers = new int[ProductEnum.values().length]; //trigger is only for cases - should also be written in database 
+    protected static int[] total_j = new int[ProductEnum.values().length]; //this needs to be constantly written to database 
+    protected static int[] total_c = new int[ProductEnum.values().length];
+    protected static int[] triggers = new int[ProductEnum.values().length]; //trigger is only for cases - should also be written in database 
     
     public static void decr_prod(ProductEnum p, int c, int j){ //negative inputs increment
         int index = p.get_ind();

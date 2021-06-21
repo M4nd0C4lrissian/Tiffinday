@@ -1,24 +1,28 @@
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 
 public class BatchSorter {
 
     //tested
-    public static ArrayList<BatchT> insertbyDate(ArrayList<BatchT> batches, BatchT to_add) throws InputMismatchException{
+    public static void insertbyDate(ArrayList<BatchT> batches, BatchT to_add){
         
         int[] s_date = to_add.getDate();
 
         int lo = 0;
         int hi = batches.size() - 1;
 
+        if(batches.size() == 0){
+            batches.add(to_add);
+            return;
+        }
+
         if(is_later(batches.get(lo).getDate(), s_date)){
             batches.add(lo, to_add);
-            return batches;
+            return;
         }
 
         if(is_later(s_date, batches.get(hi).getDate())){
             batches.add(to_add);
-            return batches;
+            return;
         }
         while(hi != lo){ 
             int mid = (hi + lo) / 2; 
@@ -26,7 +30,7 @@ public class BatchSorter {
                 lo = mid + 1;
                 if(is_later(batches.get(lo).getDate(), s_date)){
                     batches.add(lo, to_add);
-                    return batches;
+                    return;
                 }
             }
             else{
@@ -36,18 +40,37 @@ public class BatchSorter {
         }
         if(lo + 1 >= batches.size()){
             batches.add(to_add);
+            return;
         }
 
         batches.add(lo + 1, to_add);
-        return batches;
+        return;
         
     }
 
-    //tested
-    private static boolean is_later(int[] l_date, int[] e_date) throws InputMismatchException{ //this could be put in constants / services module for use in is_expired with EXP range passed as a length three int[]
-        if(l_date.length != 3 || l_date.length != e_date.length){
-            throw new InputMismatchException("Invalid date format");
+   //must ensure that to_find is a valid date
+   //tested
+   public static int findbyDate(ArrayList<BatchT> batches, int l, int r, int[] to_find){
+        if (r >= l) {
+            int mid = l + (r - l) / 2;
+ 
+            if (java.util.Arrays.equals(batches.get(mid).getDate(), to_find))
+                return mid;
+ 
+            if (is_later(batches.get(mid).getDate(), to_find))
+                return findbyDate(batches, l, mid - 1, to_find);
+ 
+            return findbyDate(batches, mid + 1, r, to_find);
         }
+        return -1;
+    }
+
+    //tested
+    //Assumes all date inputs are valid formats
+    private static boolean is_later(int[] l_date, int[] e_date){ //this could be put in constants / services module for use in is_expired with EXP range passed as a length three int[]
+       // if(l_date.length != 3 || l_date.length != e_date.length){
+      //      throw new InputMismatchException("Invalid date format");
+       // } is always checked for earlier
 
         for(int i = 0 ; i < l_date.length ; i++){
             if(l_date[i] > e_date[i]){
@@ -74,11 +97,13 @@ public class BatchSorter {
         batches.add(new BatchT(ProductEnum.GREEN, new int[] {2021, 3, 30}, 4, 4));
 
         BatchT to_add = new BatchT(ProductEnum.GREEN, new int[] {2021, 4, 18}, 4, 4);
-        quickSort(batches, 0, batches.size()-1);
+        quickSort(batches);
 
         for(BatchT b : batches){
             print(b);
         }
+        System.out.println();
+        System.out.println(findbyDate(batches, 0, batches.size() - 1, new int[] {2001, 3, 30}));
     }
 
     
@@ -91,12 +116,16 @@ public class BatchSorter {
         System.out.print(", ");
     }
 
-    public static void quickSort(ArrayList<BatchT> batches, int begin, int end) { //works!
+    public static void quickSort(ArrayList<BatchT> batches){
+        quickSortRec(batches, 0, batches.size() - 1);
+    }
+
+    private static void quickSortRec(ArrayList<BatchT> batches, int begin, int end) { //works!
         if (begin < end) {
             int partitionIndex = partition(batches, begin, end);
     
-            quickSort(batches, begin, partitionIndex-1);
-            quickSort(batches, partitionIndex+1, end);
+            quickSortRec(batches, begin, partitionIndex-1);
+            quickSortRec(batches, partitionIndex+1, end);
         }
     }
 
