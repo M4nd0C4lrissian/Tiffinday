@@ -1,17 +1,38 @@
-public class Trigger { //this class will need to entirely interface with the database
+
+//Assumption - setup() will be called before any other access routine
+public class Trigger {
     
     //Note for implementation -- user should normally only use BatchQueue to add Batches and ship from them, and thus Trigger and its associated totals will only have
     //to be interfaced with in BatchQueue and not BatchT / ShipmentT (other than their override methods). This means some extra care will have to go into ensuring that other means of messing 
     //with values are protected from the user.
 
-    protected static int[] total_j = new int[ProductEnum.values().length]; //this needs to be constantly written to database 
-    protected static int[] total_c = new int[ProductEnum.values().length];
-    protected static int[] triggers = new int[ProductEnum.values().length]; //trigger is only for cases - should also be written in database 
+    protected static int[] total_c = new int[ProductEnum.values().length]; 
+    protected static int[] total_j = new int[ProductEnum.values().length];
+    protected static int[] triggers = new int[ProductEnum.values().length]; //only for cases
     
+    public static void main(String[] args) {
+        setup();
+        set_triggers(new int[] {1,2,3,4});
+        decr_prod(ProductEnum.YELLOW, 3, 0);
+    }
+
+    public static void setup(){
+        TriggerD.setup();
+        int[][] totals = TriggerD.get_totals();
+
+        total_c = totals[0];                          
+        total_j = totals[1];
+        triggers = TriggerD.get_trigs();
+    }
+
+
+
     public static void decr_prod(ProductEnum p, int c, int j){ //negative inputs increment
         int index = p.get_ind();
         total_c[index] -= c;
         total_j[index] -= j;
+        TriggerD.set_totals(p, total_c[index], total_j[index]);
+
         triggered(p);
     }
 
@@ -26,6 +47,7 @@ public class Trigger { //this class will need to entirely interface with the dat
     public static void set_triggers(int[] trigs){
         if(trigs.length != triggers.length){
             System.out.println("Invalid trigger input"); //these checks are probably both unnecessary but here for now to represent assumptions later
+            return;
         }
 
         for(int i : trigs){
@@ -34,12 +56,8 @@ public class Trigger { //this class will need to entirely interface with the dat
                 return;
             }
         }
-
-        for(int j = 0 ; j < triggers.length ; j++){
-            triggers[j] = trigs[j];
-        }
-
-
-
+        
+        TriggerD.set_trigs(trigs);
+        triggers = trigs;
     }
 }

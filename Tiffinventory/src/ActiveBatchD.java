@@ -1,5 +1,7 @@
 import java.sql.*;
 import java.util.ArrayList;
+
+//Assumption - setup() will be called before any other access routine
 public class ActiveBatchD {
     public static void main(String[] agrs){
         setup();
@@ -53,16 +55,16 @@ public class ActiveBatchD {
         Statement stmt = null;
         try{
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/tiffinday", "root", "Brownhawk@11");
-            stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            stmt = con.createStatement();
             int[] date = to_add.getDate();
 
-            ResultSet rs = stmt.executeQuery("SELECT * FROM table_" + Integer.toString(to_add.getProd().get_ind()) + " WHERE (Year = " + Integer.toString(date[0]) + 
+           /* ResultSet rs = stmt.executeQuery("SELECT * FROM table_" + Integer.toString(to_add.getProd().get_ind()) + " WHERE (Year = " + Integer.toString(date[0]) + 
             ") AND (Month = " + Integer.toString(date[1]) + ") AND (Day = " + Integer.toString(date[2]) + ")");
             int size = 0;
             if(rs.last()){
                 size = rs.getRow();
             }
-            if(size >= 1){ //because we check for it upon every addition, we can treat this as a 0 or 1, either one already exists, or none exist
+            if(size >= 1){ //this is now unnecessary as it is handled in BatchQueue prior to insertion
                 int c = rs.getInt("Cases");
                 int j = rs.getInt("Jars");
                 stmt.executeUpdate("UPDATE table_" + Integer.toString(to_add.getProd().get_ind()) + " SET Cases = " 
@@ -73,6 +75,7 @@ public class ActiveBatchD {
                 return; //manual update instead of passing to change_vals as change vals will accept only BatchT objects to ensure correct input values and this method does not have access
                 //to the source BatchT object that needs its values changed
             }
+            */
 
             stmt.executeUpdate("INSERT INTO table_" + Integer.toString(to_add.getProd().get_ind()) + " (Year, Month, Day, Cases, Jars) VALUES (" + Integer.toString(date[0]) + ", " 
             + Integer.toString(date[1]) + ", " + Integer.toString(date[2]) + ", " + Integer.toString(to_add.getCnum()) + ", " + Integer.toString(to_add.getJnum()) + ")");
@@ -144,6 +147,7 @@ public class ActiveBatchD {
         }
     }
 
+    //Note: passing 0s here will update an already decremented Batch in BatchQueue (like in ship()) 
     public static void decr_vals(BatchT to_change, int d_c, int d_j){ //maybe should be decr values -- easier and more common to decrease
         int new_c = to_change.getCnum() - d_c; //these not being less than 0 should be handled in BatchQueue - make sure they are
         int new_j = to_change.getJnum() - d_j;
@@ -154,7 +158,6 @@ public class ActiveBatchD {
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/tiffinday", "root", "Brownhawk@11");
             stmt = con.createStatement();
             int[] date = to_change.getDate();
-
             stmt.executeUpdate("UPDATE table_" + Integer.toString(to_change.getProd().get_ind()) + " SET Cases = " 
             + Integer.toString(new_c) + ", Jars = " + Integer.toString(new_j) + " WHERE (Year = " + Integer.toString(date[0]) + 
             ") AND (Month = " + Integer.toString(date[1]) + ") AND (Day = " + Integer.toString(date[2]) + ")");

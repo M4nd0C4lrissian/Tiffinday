@@ -4,13 +4,29 @@ import java.util.InputMismatchException;
 public class BatchQueue {  //responsible for tracking active batches, for making shipments thoughtless and providing info for the table to be made
     protected static ArrayList<ArrayList<BatchT>> batches = new ArrayList<ArrayList<BatchT>>(ProductEnum.values().length); //as this will pull from ActiveBatchD, we need to check for 0 length, it could mean that there arent any batches of that kind or there is an issue with the database (because of try-catch in getBatches)
 
-
+    public static void setup(){
+        for(int i = 0 ; i < ProductEnum.values().length ; i++){ 
+            batches.add(ActiveBatchD.getBatches(ProductEnum.values()[i]));
+            BatchSorter.quickSort(batches.get(i));
+        }
+    }
+    
+    //test with override
     public static void new_batch(ProductEnum p, int[] date, int c, int j){
         try{
             BatchT b = new BatchT(p, date, c, j);
-            BatchSorter.insertbyDate(batches.get(p.get_ind()), b);
+            ArrayList<BatchT> q = batches.get(p.get_ind());
+            int ind = BatchSorter.findbyDate(q, 0, q.size() - 1, date);
+            if(ind >= 0){
+                BatchT b2 = q.get(ind); 
+                override(b2, b2.getCnum() + c, b2.getJnum() + j); 
+                return;            
+            }
+            else{
+                BatchSorter.insertbyDate(q, b);
+                ActiveBatchD.new_batch(b);
+            }
             Trigger.decr_prod(p, -c, -j);
-            ActiveBatchD.new_batch(b);
         }
         catch(InputMismatchException e){
             System.out.println("Incorrect date format / case and jar values");
@@ -18,12 +34,6 @@ public class BatchQueue {  //responsible for tracking active batches, for making
         }
     }
 
-    protected static void setup(){
-        for(int i = 0 ; i < ProductEnum.values().length ; i++){ //IMPORTANT** this should always be initialized -- actually won't need to be because will pull from DB every time
-            batches.add(ActiveBatchD.getBatches(ProductEnum.values()[i]));
-            BatchSorter.quickSort(batches.get(i));
-        }
-    }
     
     /*
     public static void main(String[] args){
@@ -66,10 +76,10 @@ public class BatchQueue {  //responsible for tracking active batches, for making
         System.out.print("c : " + Integer.toString(b.getCnum()) + ", j : " + Integer.toString(b.getJnum()) + ", ");
     }
 
-    //TO TEST
+    //TO TEST //need to protect against negative values           
     public static void ship(ProductEnum p, String place, int c, int j){  //this must be tested independently before database integration
         check_exp(p);
-        if(Trigger.total_c[p.get_ind()] < c || Trigger.total_j[p.get_ind()] < j){
+        if((Trigger.total_c[p.get_ind()] < c) || (Trigger.total_j[p.get_ind()] < j)){
             System.out.println("Not enough stock. " + Integer.toString(c) + " cases and " + Integer.toString(j) + " jars of type " + p.toString() + 
             " were requested for distribution to " + place + ". However, only " + Integer.toString(Trigger.total_c[p.get_ind()]) + " cases and "
             + Integer.toString(Trigger.total_j[p.get_ind()]) + " jars of this type are available.");
@@ -109,7 +119,7 @@ public class BatchQueue {  //responsible for tracking active batches, for making
                 c2ship -= c_num;
             }
 
-            ActiveBatchD.decr_vals(b, c - c2ship, j - j2ship);
+            ActiveBatchD.decr_vals(b, 0, 0);
 
             if(b.is_empty()){
                 ActiveBatchD.del_batch(b);
@@ -122,6 +132,7 @@ public class BatchQueue {  //responsible for tracking active batches, for making
     }
 
     
+    //this could also lead to issues with DB and queue synchronization due to queue allowing multiple  -- could make it perform iteratively I guess (to remove all batches with that date)?
     public static void remove_batch_by_Date(ProductEnum p, int[] to_del) throws InputMismatchException{ //will take in date and will use similar principal to searching for add_batch_at_date. (searching in ordered array so binary search but with a few extra compares)
         if(!DateServices.is_validDate(to_del)){
             System.out.println("Invalid date format");
@@ -141,6 +152,7 @@ public class BatchQueue {  //responsible for tracking active batches, for making
         Trigger.decr_prod(p, d_c, d_j);
         ActiveBatchD.del_batch(d);
     }
+    
 
     public static void remove_batch_by_ind(ProductEnum p, int ind){
         ArrayList<BatchT> batch_q = batches.get(p.get_ind());
@@ -157,7 +169,16 @@ public class BatchQueue {  //responsible for tracking active batches, for making
         ActiveBatchD.del_batch(d);
     }
 
-    //implement override
+    //test override
+    protected static void override(BatchT to_change, int new_c, int new_j) throws InputMismatchException{
+        if(new_c < 0 || new_j < 0){
+            throw new InputMismatchException("Invalid case or jar value (must be greater than 0).");
+        }
+        int[] date = to_change.getDate();
+        ProductEnum p = to_change.getProd();
+        remove_batch_by_Date(p, date);
+        new_batch(p, date, new_c, new_j); //change this to use decr_values on the database side instead and just add in the batch to the queue
+    }
 
 
     private static void check_exp(ProductEnum p){
